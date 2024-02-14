@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Rigidbody2D rigid;
     [SerializeField] SpriteRenderer spriteRenderer;
     [SerializeField] Animator animator;
+    [SerializeField] CapsuleCollider2D capsule;
 
     [Header("Property")]
     [SerializeField] float movePower;
@@ -19,10 +20,11 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] float jumpSpeed;
 
+    [SerializeField] LayerMask groundCheckLayer;
 
     private Vector2 moverDir;
     private bool isGround;
-    private int index;
+    public int index;
 
     private void FixedUpdate()
     {
@@ -83,23 +85,69 @@ public class PlayerController : MonoBehaviour
     }
     private void OnJump(InputValue value)
     {
-        if (value.isPressed && isGround && index != 0)
+        if (value.isPressed && index != 0 && Input.GetKey(KeyCode.DownArrow)==false && Input.GetKey(KeyCode.S) == false)
         {
             Jump();
             index--;
         }
-
     }
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnJumpDown(InputValue value)
     {
+        if (aa == true)
+        {
+            StartCoroutine(JumpDown());
+        }
+    }
+   
 
-        index = 2;
-
-
-        isGround = true;
-
+    IEnumerator JumpDown()
+    {
+        capsule.enabled = false;
+        yield return new WaitForSeconds(0.3f);
+        capsule.enabled = true;
 
     }
+    bool aa = false;
+    private int groundCount;
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (LayerMask.NameToLayer("Water") == collision.gameObject.layer)
+        {
+            aa = true;
+        }
+        if (groundCheckLayer.Contain(collision.gameObject.layer))
+        {
+            groundCount++;
+            index = 1;
+            isGround = groundCount > 0;
+            animator.SetBool("IsGround", isGround);
+            Debug.Log("¶¥");
+        }
+    }
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        aa = false;
+        if (groundCheckLayer.Contain(collision.gameObject.layer))
+        {
+            groundCount--;
+            isGround = groundCount > 0;
+            animator.SetBool("IsGround", isGround);
+            Debug.Log("¶¥ ¶³¾îÁü");
+        }
+
+    }
+
+    /*  private void OnCollisionEnter2D(Collision2D collision)
+      {
+
+          index = 2;
+
+
+          isGround = true;
+
+
+      }*/
     /*private void OnCollisionExit2D(Collision2D collision)
     {
         isGround = false;
